@@ -98,9 +98,8 @@ export function Navigation() {
         <div className="container-shell">
           <nav
             aria-label="Primary"
-            className={`mt-6 flex items-center justify-between gap-4 rounded-full border border-white/10 bg-[rgba(13,14,20,0.5)] px-4 py-3 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all duration-500 ease-out-expo sm:px-5 ${
-              scrolled ? "shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)]" : ""
-            }`}
+            className={`mt-6 flex items-center justify-between gap-4 rounded-full border border-white/10 bg-[rgba(13,14,20,0.5)] px-4 py-3 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all duration-500 ease-out-expo sm:px-5 ${scrolled ? "shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)]" : ""
+              }`}
           >
             <Link
               href="/"
@@ -132,7 +131,7 @@ export function Navigation() {
 
             <div className="flex items-center gap-3">
               <Link
-                href="/#contact"
+                href="https://forms.gle/Ubxis51Yt6E7VWkz6"
                 className="hidden rounded-full bg-brand-indigo px-5 py-2.5 text-sm font-semibold text-[#0c0c30] transition-all duration-300 ease-out-expo hover:brightness-125 active:scale-[0.98] md:inline-block"
               >
                 Join Us
@@ -149,19 +148,16 @@ export function Navigation() {
               >
                 <span className="relative block h-3 w-5">
                   <span
-                    className={`absolute left-0 top-0 block h-px w-5 bg-current transition-all duration-300 ease-out-expo ${
-                      open ? "top-1.5 rotate-45" : ""
-                    }`}
+                    className={`absolute left-0 top-0 block h-px w-5 bg-current transition-all duration-300 ease-out-expo ${open ? "top-1.5 rotate-45" : ""
+                      }`}
                   />
                   <span
-                    className={`absolute left-0 top-1/2 block h-px w-5 -translate-y-1/2 bg-current transition-all duration-300 ease-out-expo ${
-                      open ? "opacity-0" : ""
-                    }`}
+                    className={`absolute left-0 top-1/2 block h-px w-5 -translate-y-1/2 bg-current transition-all duration-300 ease-out-expo ${open ? "opacity-0" : ""
+                      }`}
                   />
                   <span
-                    className={`absolute left-0 bottom-0 block h-px w-5 bg-current transition-all duration-300 ease-out-expo ${
-                      open ? "bottom-1.5 -rotate-45" : ""
-                    }`}
+                    className={`absolute left-0 bottom-0 block h-px w-5 bg-current transition-all duration-300 ease-out-expo ${open ? "bottom-1.5 -rotate-45" : ""
+                      }`}
                   />
                 </span>
               </button>
