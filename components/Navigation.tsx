@@ -9,29 +9,22 @@ const NAV_LINKS = [
   { label: "Domains", href: "/#domains" },
   { label: "Projects", href: "/#projects" },
   { label: "About", href: "/#about" },
+  { label: "Playground", href: "/playground" },
   { label: "Contact", href: "/#contact" },
 ];
 
 function Monogram() {
   return (
     <span
-      className="grid h-8 w-8 place-items-center rounded-md border border-hairline bg-surface text-accent"
+      className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-md"
       aria-hidden="true"
     >
-      <svg
-        viewBox="0 0 24 24"
-        width="18"
-        height="18"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M4 19c0-8 3-14 8-14s8 6 8 14" />
-        <path d="M6 19c0-5 2-8 6-8s6 3 6 8" />
-        <circle cx="12" cy="7" r="1.5" />
-      </svg>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo.webp"
+        alt=""
+        className="h-full w-full object-cover"
+      />
     </span>
   );
 }
@@ -98,7 +91,7 @@ export function Navigation() {
         <div className="container-shell">
           <nav
             aria-label="Primary"
-            className={`mt-6 flex items-center justify-between gap-4 rounded-full border border-white/10 bg-[rgba(13,14,20,0.5)] px-4 py-3 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all duration-500 ease-out-expo sm:px-5 ${scrolled ? "shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)]" : ""
+            className={`mt-6 flex items-center justify-between gap-4 rounded-full border border-white/10 bg-black/45 px-4 py-3 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all duration-500 ease-out-expo sm:px-5 ${scrolled ? "shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)]" : ""
               }`}
           >
             <Link
