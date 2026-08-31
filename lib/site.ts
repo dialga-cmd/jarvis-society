@@ -107,9 +107,10 @@ export type Project = {
   name: string;
   blurb: string;
   status: string;
+  tags: string[];
   icon: Icon;
-  // Public GitHub repo URL, or null to render a muted/disabled GitHub chip
-  // (linked to the org profile as a fallback once one exists).
+  // Public GitHub repo URL (shown in the revealed details), or null for a
+  // muted/disabled GitHub chip.
   github: string | null;
 };
 
@@ -119,40 +120,110 @@ export const projects: Project[] = [
     domain: "Cyber Forensics & Blockchain",
     name: "Sentinel-E",
     blurb:
-      "A deepfake detection engine that flags synthetic media through biometric and temporal artifacts, built for journalists and forensic teams.",
+      "Deepfake detection that flags synthetic media through biometric and temporal artifacts.",
     status: "In development",
+    tags: ["Forensics", "AI", "TensorFlow"],
     icon: ShieldCheck,
-    github: null,
+    github: "https://github.com/jarvis-society/sentinelle",
+  },
+  {
+    id: "abyss",
+    domain: "Game Development & Designing",
+    name: "Abyss Run",
+    blurb:
+      "A neon procedurally-generated endless runner with a synthesized synthwave score.",
+    status: "Prototype",
+    tags: ["Game Dev", "Unity", "Sound Design"],
+    icon: GameController,
+    github: "https://github.com/jarvis-society/abyss-run",
   },
   {
     id: "hive",
     domain: "Electronics and IoT",
     name: "Project Hive",
     blurb:
-      "A campus-wide environmental sensing network — air quality, noise, and occupancy — streaming live telemetry to a web dashboard.",
+      "A campus-wide environmental sensing network streaming live telemetry to a dashboard.",
     status: "Prototype",
+    tags: ["IoT", "ESP32", "Telemetry"],
     icon: Cpu,
-    github: null,
+    github: "https://github.com/jarvis-society/hive",
   },
   {
-    id: "relic",
-    domain: "Game Development & Designing",
-    name: "Relic of the Hollow",
-    blurb:
-      "A story-driven 3D adventure prototype exploring procedural dungeon generation and an original ambient score.",
-    status: "Prototype",
-    icon: GameController,
-    github: null,
-  },
-  {
-    id: "genome",
+    id: "codonscope",
     domain: "Informatics",
     name: "CodonScope",
     blurb:
-      "A lightweight visualisation tool for genomic sequence alignment, aimed at making bioinformatics approachable in undergraduate labs.",
+      "An approachable genomic sequence alignment visualiser for undergraduate labs.",
     status: "Research",
+    tags: ["Bioinformatics", "Python", "Viz"],
     icon: Dna,
-    github: null,
+    github: "https://github.com/jarvis-society/codonscope",
+  },
+  {
+    id: "glimmer",
+    domain: "Game Development & Designing",
+    name: "Glimmer",
+    blurb:
+      "A puzzle-platformer built around light refraction and hand-painted tilesets.",
+    status: "In development",
+    tags: ["Godot", "Puzzle", "Pixel Art"],
+    icon: Palette,
+    github: "https://github.com/jarvis-society/glimmer",
+  },
+  {
+    id: "tetra",
+    domain: "Electronics and IoT",
+    name: "TETRA-Grid",
+    blurb:
+      "Self-healing mesh networking firmware for sensor arrays in remote deployments.",
+    status: "Prototype",
+    tags: ["Mesh", "LoRa", "Embedded"],
+    icon: Circuitry,
+    github: "https://github.com/jarvis-society/tetra-grid",
+  },
+  {
+    id: "ledgerlens",
+    domain: "Cyber Forensics & Blockchain",
+    name: "LedgerLens",
+    blurb:
+      "On-chain forensics tool for tracing wallet activity and flagging laundering paths.",
+    status: "Research",
+    tags: ["Blockchain", "Audit", "Graph"],
+    icon: Fingerprint,
+    github: "https://github.com/jarvis-society/ledgerlens",
+  },
+  {
+    id: "ephyr",
+    domain: "Informatics",
+    name: "Ephyr Notes",
+    blurb:
+      "An offline-first, graph-structured knowledgebase for research workflows.",
+    status: "In development",
+    tags: ["PWA", "Graph DB", "TypeScript"],
+    icon: ChartLineUp,
+    github: "https://github.com/jarvis-society/ephyr",
+  },
+  {
+    id: "voidrunner",
+    domain: "Game Development & Designing",
+    name: "Voidrunner",
+    blurb:
+      "A combat flight sim with real-time aerodynamic modelling and dynamic weather.",
+    status: "Prototype",
+    tags: ["3D", "Physics", "Unreal"],
+    icon: GameController,
+    github: "https://github.com/jarvis-society/voidrunner",
+  },
+  {
+    id: "birch",
+    domain: "Electronics and IoT",
+    name: "Project Birch",
+    blurb:
+      "A smart planter kit that tracks soil moisture, light and ambient audio to keep plants alive.",
+    status: "Complete",
+    tags: ["IoT", "Sensors", "App"],
+    icon: Cpu,
+    github: "https://github.com/jarvis-society/birch",
   },
 ];
 

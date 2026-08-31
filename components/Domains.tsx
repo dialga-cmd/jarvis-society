@@ -1,24 +1,30 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { domains } from "@/lib/site";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Asymmetric bento spans: offsets create a staggered, editorial rhythm.
-// They must apply at the same breakpoint as the 12-col grid (md+) so the
-// second row (cards 3/4) never collapses to 1-column cells.
-const SPANS = [
-  "md:col-span-7",
-  "md:col-span-5",
-  "md:col-span-5",
-  "md:col-span-7",
-];
+// Interactive (hover-reveal) cards only apply on desktop (lg+). Below that —
+// mobile & tablet — cards render fully static with all details visible, and
+// tapping does nothing.
+const INTERACTIVE_QUERY = "(min-width: 1024px)";
 
 export function Domains() {
   const sectionRef = useRef<HTMLElement>(null);
+  // Cards the user has tapped/pinned open. Once pinned, that card ignores all
+  // hover/animate logic and stays fully expanded & static. Pin all four to
+  // stop every card.
+  const [pinned, setPinned] = useState<Record<string, boolean>>({});
+
+  const pinCard = (id: string) => {
+    if (typeof window !== "undefined" && !window.matchMedia(INTERACTIVE_QUERY).matches) {
+      return; // no hover logic on mobile/tablet — ignore taps
+    }
+    setPinned((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   useEffect(() => {
     const reduce = window.matchMedia(
@@ -91,50 +97,92 @@ export function Domains() {
             </p>
           </div>
 
-          <div className="domain-grid grid grid-cols-1 gap-5 md:grid-cols-12 md:gap-6">
-            {domains.map((d, i) => {
+          <div className="domain-grid grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
+            {domains.map((d) => {
               const Icon = d.icon;
+              const isPinned = !!pinned[d.id];
               return (
                 <article
                   key={d.id}
-                  className={`domain-card group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-hairline bg-surface p-7 transition-colors duration-500 hover:border-white/15 md:p-9 ${
-                    SPANS[i % SPANS.length]
-                  }`}
+                  data-pinned={isPinned ? "true" : undefined}
+                  onClick={() => pinCard(d.id)}
+                  className="domain-card group relative flex overflow-hidden rounded-2xl border border-hairline bg-surface p-7 md:p-9"
                 >
                   {/* Card top accent line */}
-                  <span className="absolute inset-x-0 top-0 h-px bg-accent-gradient opacity-40 transition-opacity duration-500 group-hover:opacity-100" />
+                  <span className="absolute inset-x-0 top-0 h-px bg-accent-gradient opacity-40" />
 
-                  <div className="flex items-start justify-between">
-                    <span className="grid h-14 w-14 place-items-center rounded-xl border border-white/10 bg-void text-accent-soft">
-                      <Icon size={26} weight="duotone" />
-                    </span>
-                    <span className="font-mono text-sm tracking-widest text-ink-tertiary">
+                  {/* Translated Uiverse animation layers */}
+                  <span className="dc-frame" aria-hidden="true" />
+                  <span className="dc-trail" aria-hidden="true" />
+
+                  {/* Collapsed hero: icon + title float centered. On hover it
+                      slides/fades away as the expanded stack settles in. Both
+                      layers use only transform + opacity, so the transition is
+                      GPU-smooth and the card footprint never changes. */}
+                  <div className="dc-hero absolute inset-0 grid content-center" aria-hidden="true">
+                    <div className="px-4 text-center">
+                      <span className="mx-auto grid h-14 w-14 place-items-center rounded-xl border border-white/10 bg-void text-accent-soft">
+                        <Icon size={26} weight="duotone" />
+                      </span>
+                      <h3 className="dc-hero-title mx-auto mt-8 max-w-[18ch] font-display text-2xl font-semibold leading-tight tracking-tight text-ink">
+                        {d.name}
+                      </h3>
+                    </div>
+                    <span className="dc-hero-index absolute right-6 top-6 font-mono text-sm tracking-widest text-ink-tertiary">
                       {d.index}
                     </span>
                   </div>
 
-                  <div className="mt-10">
-                    <h3 className="font-display text-2xl font-semibold tracking-tight text-ink">
+                  {/* Expanded stack: icon + title settle to their spots, then
+                      the details reveal below — all inside the fixed card. */}
+                  <div className="dc-stack relative flex h-full w-full flex-col">
+                    <div className="flex items-start justify-between">
+                      <span className="dc-icon grid h-14 w-14 place-items-center rounded-xl border border-white/10 bg-void text-accent-soft">
+                        <Icon size={26} weight="duotone" />
+                      </span>
+                      <span className="flex items-center gap-3">
+                        {isPinned && (
+                          <span className="dc-pinned font-mono text-[0.65rem] uppercase tracking-widest text-accent-soft">
+                            Pinned
+                          </span>
+                        )}
+                        <span className="dc-index font-mono text-sm tracking-widest text-ink-tertiary">
+                          {d.index}
+                        </span>
+                      </span>
+                    </div>
+
+                    <h3 className="dc-title mt-8 font-display text-2xl font-semibold tracking-tight text-ink">
                       {d.name}
                     </h3>
-                    <p className="mt-2 text-sm italic text-ink-secondary">
-                      {d.tagline}
-                    </p>
-                    <p className="mt-4 text-[0.95rem] leading-relaxed text-ink-secondary">
-                      {d.description}
-                    </p>
+
+                    <div className="dc-details">
+                      <p className="dc-tagline mt-2 text-sm italic text-ink-secondary">
+                        {d.tagline}
+                      </p>
+                      <p className="mt-4 text-[0.95rem] leading-relaxed text-ink-secondary">
+                        {d.description}
+                      </p>
+                      <ul className="mt-8 flex flex-wrap gap-2">
+                        {d.subAreas.map((tag) => (
+                          <li
+                            key={tag}
+                            className="rounded-full border border-white/10 bg-void/40 px-3.5 py-1.5 font-mono text-[0.72rem] tracking-wide text-ink-secondary"
+                          >
+                            {tag}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
 
-                  <ul className="mt-8 flex flex-wrap gap-2">
-                    {d.subAreas.map((tag) => (
-                      <li
-                        key={tag}
-                        className="rounded-full border border-white/10 bg-void/40 px-3.5 py-1.5 font-mono text-[0.72rem] tracking-wide text-ink-secondary"
-                      >
-                        {tag}
-                      </li>
-                    ))}
-                  </ul>
+                  {/* Hover hint — a footer that shows before the reveal and
+                      fades away once the animation is triggered. Hidden for
+                      pinned cards and on mobile/tablet (no hover). */}
+                  <span className="dc-hoverhint absolute bottom-5 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 whitespace-nowrap font-mono text-[0.7rem] uppercase tracking-widest text-ink-tertiary">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent-soft" aria-hidden="true" />
+                    Hover to reveal
+                  </span>
                 </article>
               );
             })}

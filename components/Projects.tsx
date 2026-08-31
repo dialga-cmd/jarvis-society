@@ -11,57 +11,72 @@ const SPEED = 44;
 function ProjectCard({ p, i }: { p: (typeof projects)[number]; i: number }) {
   const Icon = p.icon;
 
-  const statusTone = "text-ink";
-
   return (
-    <article className="group relative flex w-[300px] shrink-0 flex-col justify-between overflow-hidden rounded-xl border border-hairline bg-surface p-6 transition-[transform,border-color,box-shadow,background-color] duration-300 ease-out-expo hover:-translate-y-1.5 hover:border-accent-soft/50 hover:bg-[#16161A] hover:shadow-[0_24px_60px_-24px_rgba(0,0,0,0.85)] sm:w-[340px] lg:w-[360px]">
-      <span className="absolute inset-y-0 left-0 w-px bg-accent-gradient opacity-30 transition-opacity duration-300 group-hover:opacity-100" />
+    <article className="proj-card group relative flex h-[340px] w-[280px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-hairline bg-surface sm:w-[320px] lg:w-[360px]">
+      {/* Expanding corner flaps — they start as small tiles and fill the card
+          on hover (translated from Uiverse by eslam-hany). */}
+      <span className="proj-corner proj-corner-a" aria-hidden="true" />
+      <span className="proj-corner proj-corner-b" aria-hidden="true" />
 
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-[0.7rem] tracking-widest text-ink-tertiary">
-          PROJ-0{i + 1}
-        </span>
-        <span className="flex items-center gap-2">
+      {/* Rest state: the project name, centered. */}
+      <div className="proj-rest relative z-10 px-6 text-center">
+        <h3 className="font-display text-2xl font-semibold leading-tight tracking-tight text-ink">
+          {p.name}
+        </h3>
+      </div>
+
+      {/* Revealed details — absolutely fills the card, laid out top to bottom
+          like the original project card (no centering, nothing cropped). */}
+      <div className="proj-reveal absolute inset-x-0 top-0 z-20 flex h-full w-full flex-col p-6">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[0.7rem] tracking-widest text-white/60">
+            PROJ-0{i + 1}
+          </span>
           {p.github ? (
             <a
               href={p.github}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${p.name} on GitHub`}
-              className="grid h-8 w-8 place-items-center rounded-full border border-white/10 bg-void/60 text-ink-secondary transition-colors duration-300 hover:border-accent-soft/60 hover:text-ink"
+              className="grid h-9 w-9 place-items-center rounded-full border border-white/25 bg-white/5 text-white transition-colors duration-300 hover:bg-white hover:text-ink"
             >
-              <GithubLogo size={15} weight="duotone" />
+              <GithubLogo size={16} weight="duotone" />
             </a>
           ) : (
             <span
               title="Repo not public yet"
               aria-disabled="true"
-              className="grid h-8 w-8 cursor-not-allowed place-items-center rounded-full border border-white/5 bg-void/40 text-ink-tertiary/60"
+              className="grid h-9 w-9 cursor-not-allowed place-items-center rounded-full border border-white/15 bg-white/5 text-white/50"
             >
-              <GithubLogo size={15} weight="duotone" />
+              <GithubLogo size={16} weight="duotone" />
             </span>
           )}
-          <span
-            className={`rounded-full border border-white/10 bg-void/40 px-2.5 py-1 font-mono text-[0.62rem] uppercase tracking-wider ${statusTone}`}
-          >
-            {p.status}
+        </div>
+
+        <div className="mt-6">
+          <span className="grid h-11 w-11 place-items-center rounded-lg border border-white/20 bg-white/10 text-white">
+            <Icon size={20} weight="duotone" />
           </span>
-        </span>
-      </div>
+          <h3 className="mt-4 font-display text-2xl font-semibold leading-tight tracking-tight text-white">
+            {p.name}
+          </h3>
+          <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-wider text-white/60">
+            {p.domain}
+          </p>
+          <p className="mt-3 text-[0.82rem] leading-relaxed text-white/85">{p.blurb}</p>
+        </div>
 
-      <div className="mt-6">
-        <span className="grid h-11 w-11 place-items-center rounded-lg border border-white/10 bg-void/60 text-accent-soft">
-          <Icon size={20} weight="duotone" />
-        </span>
-        <h3 className="mt-5 font-display text-2xl font-semibold tracking-tight text-ink">
-          {p.name}
-        </h3>
-        <p className="mt-1.5 font-mono text-[0.62rem] uppercase tracking-wider text-ink-tertiary">
-          {p.domain}
-        </p>
+        <ul className="mt-auto flex flex-wrap gap-2 pt-5">
+          {p.tags.map((tag) => (
+            <li
+              key={tag}
+              className="rounded-full border border-white/20 bg-white/5 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-wider text-white/80"
+            >
+              {tag}
+            </li>
+          ))}
+        </ul>
       </div>
-
-      <p className="mt-5 text-sm leading-relaxed text-ink-secondary">{p.blurb}</p>
     </article>
   );
 }

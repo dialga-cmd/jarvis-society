@@ -149,6 +149,314 @@
   }
 }
 
+/* ---- Domain cards: translated Uiverse hover animation ----
+   Accent: brand indigo. Behaviour contract:
+   - Default (desktop, not pinned): only the icon + first text (title) are
+     visible; the rest of the details are collapsed.
+   - Hover (desktop, not pinned): the details reveal and the frame/trail/icon
+     effects play.
+   - Pinned (tapped) or mobile/tablet (<1024px): fully expanded AND static —
+     no hover effects at all. Pin all four cards to stop every card. */
+.domain-card { --dc-accent: var(--brand-indigo, #7d8fff); cursor: pointer; }
+
+/* ---------------------------------------------------------------------
+   Layout + reveal of the details
+   ---------------------------------------------------------------------
+   Smooth two-layer crossfade (transform + opacity only, GPU-accelerated).
+   - .dc-hero  : collapsed state — icon + title float centered.
+   - .dc-stack : expanded state — icon + title at their resting spots with
+                 the details revealed below.
+   The card footprint is fixed (min-height on desktop), so nothing shifts. */
+.domain-card .dc-hero {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.domain-card .dc-stack {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.domain-card .dc-details {
+  overflow: hidden;
+  transition:
+    opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Desktop (lg+), NOT pinned: interactive hover-reveal with a fixed footprint */
+@media (min-width: 1024px) {
+  .domain-card:not([data-pinned]) { min-height: 440px; }
+
+  /* Collapsed: only the centered hero is visible; the expanded stack is
+     hidden and nudged down so it can slide up into place on hover. */
+  .domain-card:not([data-pinned]) .dc-stack {
+    opacity: 0;
+    transform: translateY(16px);
+    pointer-events: none;
+  }
+  .domain-card:not([data-pinned]) .dc-details {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  /* Hover: hero slides up + fades out; stack slides up + fades in with the
+     details revealed below. Pure transform/opacity = smooth 60fps. */
+  .domain-card:not([data-pinned]):hover .dc-hero {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.98);
+  }
+  .domain-card:not([data-pinned]):hover .dc-stack {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .domain-card:not([data-pinned]):hover .dc-details {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pinned (tapped) cards: expanded + static — hero hidden, stack shown. */
+.domain-card[data-pinned] .dc-hero { display: none; }
+.domain-card[data-pinned] .dc-stack { opacity: 1; transform: none; }
+.domain-card[data-pinned] .dc-details { opacity: 1; transform: none; }
+
+/* Mobile/tablet (<lg): always the full static card, no hero/crossfade. */
+@media (max-width: 1023.98px) {
+  .domain-card .dc-hero { display: none; }
+  .domain-card .dc-stack { opacity: 1; transform: none; }
+  .domain-card .dc-details { opacity: 1; transform: none; }
+}
+
+/* Pin indicator (desktop + pinned only) */
+.domain-card .dc-pinned {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.domain-card[data-pinned] .dc-pinned {
+  opacity: 1;
+}
+
+/* "Hover to reveal" hint — a footer shown in the collapsed state that fades
+   away the moment the reveal animation is triggered. Hidden for pinned
+   cards and on mobile/tablet (no hover). */
+.domain-card .dc-hoverhint {
+  opacity: 1;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (min-width: 1024px) {
+  .domain-card:not([data-pinned]):hover .dc-hoverhint {
+    opacity: 0;
+  }
+  .domain-card[data-pinned] .dc-hoverhint {
+    opacity: 0;
+  }
+}
+@media (max-width: 1023.98px) {
+  .domain-card .dc-hoverhint { display: none; }
+}
+
+/* ---------------------------------------------------------------------
+   Hover effects — gated so only desktop, non-pinned cards animate
+   --------------------------------------------------------------------- */
+/* Card-level lift + border + glow */
+.domain-card {
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.4s ease;
+}
+@media (min-width: 1024px) {
+  .domain-card:not([data-pinned]):hover {
+    border-color: rgba(125, 143, 255, 0.5);
+    box-shadow:
+      0 18px 60px -18px rgba(125, 143, 255, 0.35),
+      0 0 0 1px rgba(125, 143, 255, 0.12);
+  }
+}
+
+/* Rotating border frame: straightens + insets on hover */
+.domain-card .dc-frame {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid var(--dc-accent);
+  opacity: 0;
+  transform: rotate(6deg) scale(0.98);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+@media (min-width: 1024px) {
+  .domain-card:not([data-pinned]):hover .dc-frame {
+    inset: 14px;
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+/* Trail sweep */
+.domain-card .dc-trail {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+@media (min-width: 1024px) {
+  .domain-card:not([data-pinned]):hover .dc-trail {
+    animation: dc-trail 0.9s cubic-bezier(0.16, 1, 0.3, 1) ease-in-out;
+  }
+}
+@keyframes dc-trail {
+  0% {
+    background: linear-gradient(90deg, rgba(125, 143, 255, 0) 82%, rgba(125, 143, 255, 0.65) 100%);
+    opacity: 0;
+  }
+  30% {
+    background: linear-gradient(90deg, rgba(125, 143, 255, 0) 60%, rgba(125, 143, 255, 0.7) 100%);
+    opacity: 1;
+  }
+  70% {
+    background: linear-gradient(90deg, rgba(125, 143, 255, 0) 60%, rgba(125, 143, 255, 0.7) 100%);
+    opacity: 1;
+  }
+  95% {
+    background: linear-gradient(90deg, rgba(125, 143, 255, 0) 82%, rgba(125, 143, 255, 0.65) 100%);
+    opacity: 0;
+  }
+  100% {
+    background: none;
+    opacity: 0;
+  }
+}
+
+/* Index letter-spacing close + tint */
+.domain-card .dc-index {
+  transition: letter-spacing 0.5s cubic-bezier(0.16, 1, 0.3, 1), color 0.5s ease;
+}
+@media (min-width: 1024px) {
+  .domain-card:not([data-pinned]):hover .dc-index {
+    letter-spacing: 0.06em;
+    color: var(--dc-accent);
+  }
+}
+
+/* Title/tagline slide + tint */
+.domain-card .dc-title,
+.domain-card .dc-tagline {
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.45s ease;
+}
+@media (min-width: 1024px) {
+  .domain-card:not([data-pinned]):hover .dc-title {
+    transform: translateX(6px);
+    color: #fff;
+  }
+  .domain-card:not([data-pinned]):hover .dc-tagline {
+    transform: translateX(6px);
+    color: var(--dc-accent);
+  }
+}
+
+/* Icon tile activation */
+.domain-card .dc-icon {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.5s ease, color 0.5s ease,
+    box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.domain-card .dc-icon svg {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (min-width: 1024px) {
+  .domain-card:not([data-pinned]):hover .dc-icon {
+    transform: translateY(-3px) rotate(-3deg) scale(1.06);
+    border-color: rgba(125, 143, 255, 0.55);
+    color: var(--dc-accent);
+    box-shadow: 0 10px 30px -12px rgba(125, 143, 255, 0.5);
+  }
+  .domain-card:not([data-pinned]):hover .dc-icon svg {
+    transform: scale(1.1);
+  }
+}
+
+/* ---- Project cards: expanding corner flaps (Uiverse by eslam-hany) ----
+   Two small accent corner tiles grow to fill the card on hover, turning it
+   into the revealed state (domain, name, blurb, tags, GitHub). Only the
+   project name is centered in the rest state. Mobile/tablet (<lg): no hover —
+   always show the full details statically. */
+.proj-card { --pf-accent: #4b4f57; }
+
+.proj-corner {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22%;
+  height: 22%;
+  background: var(--pf-accent);
+  z-index: 2;
+  transition:
+    width 0.5s ease,
+    height 0.5s ease,
+    border-radius 0.5s ease,
+    background 0.5s ease,
+    opacity 0.3s ease;
+}
+.proj-corner-a { top: 0; right: 0; border-radius: 0 15px 0 100%; }
+.proj-corner-b { bottom: 0; left: 0; border-radius: 0 100% 0 15px; }
+
+/* Centered project name (rest state) */
+.proj-rest {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Revealed details layer — absolutely fills the card so nothing is centered
+   or cropped; laid out top-to-bottom inside. */
+.proj-reveal {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.5s ease 0.25s;
+}
+
+@media (min-width: 1024px) {
+  /* Hover: the two corners expand into the filled card */
+  .proj-card:hover .proj-corner {
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #4a6b94 0%, #0b1b3f 100%);
+  }
+  .proj-card:hover .proj-corner .proj-corner-label {
+    opacity: 0;
+  }
+  .proj-card:hover .proj-rest {
+    opacity: 0;
+  }
+  .proj-card:hover .proj-reveal {
+    opacity: 1;
+  }
+}
+
+/* Mobile/tablet (<lg): static full details, no flaps */
+@media (max-width: 1023.98px) {
+  .proj-corner,
+  .proj-rest { display: none; }
+  .proj-card {
+    background: linear-gradient(135deg, #4a6b94 0%, #0b1b3f 100%);
+    border-color: transparent;
+  }
+  .proj-reveal { opacity: 1; }
+}
+
 /* Grain overlay - fixed, pointer-events-none, never on scroll containers */
 .grain-overlay {
   position: fixed;
