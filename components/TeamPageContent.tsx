@@ -135,50 +135,45 @@ export function TeamPageContent({
                 The people behind{" "}
                 <span className="text-accent-lit">JARVIS</span>
               </h1>
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-secondary">
-                Hover a card to tilt it, JARVIS-space style. Members load live
-                from our board.
-              </p>
             </div>
 
-              {members.length > 0 && (
-                <div className="category-bar" role="tablist" aria-label="Teams">
-                  {CATEGORIES.map((team) => (
-                    <button
-                      key={team}
-                      role="tab"
-                      aria-selected={selectedTeam === team}
-                      className={`category-btn ${
-                        selectedTeam === team ? "active" : ""
+            {members.length > 0 && (
+              <div className="category-bar" role="tablist" aria-label="Teams">
+                {CATEGORIES.map((team) => (
+                  <button
+                    key={team}
+                    role="tab"
+                    aria-selected={selectedTeam === team}
+                    className={`category-btn ${selectedTeam === team ? "active" : ""
                       }`}
-                      onClick={() => setSelectedTeam(team)}
-                    >
-                      {team}
-                    </button>
-                  ))}
-                </div>
-              )}
+                    onClick={() => setSelectedTeam(team)}
+                  >
+                    {team}
+                  </button>
+                ))}
+              </div>
+            )}
 
-              {visibleMembers.length > 0 ? (
-                <div className="team-grid flex flex-wrap justify-center gap-10">
-                  {visibleMembers.map((m) => (
-                    <div key={String(m.id)} className="team-card">
-                      <TeamCard member={m} />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-hairline bg-surface px-8 py-16 text-center">
-                  <p className="font-display text-2xl font-semibold text-ink">
-                    {error ? "Could not load the team" : "No members yet"}
-                  </p>
-                  <p className="mx-auto mt-4 max-w-md text-ink-secondary">
-                    {error
-                      ? `We hit an issue reaching the board: ${error}`
-                      : "The core team table is empty. Seed a few rows and refresh to see the tilt cards in action."}
-                  </p>
-                </div>
-              )}
+            {visibleMembers.length > 0 ? (
+              <div className="team-grid flex flex-wrap justify-center gap-10">
+                {visibleMembers.map((m) => (
+                  <div key={String(m.id)} className="team-card">
+                    <TeamCard member={m} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-hairline bg-surface px-8 py-16 text-center">
+                <p className="font-display text-2xl font-semibold text-ink">
+                  {error ? "Could not load the team" : "No members yet"}
+                </p>
+                <p className="mx-auto mt-4 max-w-md text-ink-secondary">
+                  {error
+                    ? `We hit an issue reaching the board: ${error}`
+                    : "The core team table is empty. Come back later to see the people behind the working of Jarvis."}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
