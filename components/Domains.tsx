@@ -124,8 +124,8 @@ export function Domains() {
                       <span className="mx-auto grid h-14 w-14 place-items-center rounded-xl border border-white/10 bg-void text-accent-soft">
                         <Icon size={26} weight="duotone" />
                       </span>
-                      <h3 className="dc-hero-title mx-auto mt-8 max-w-[18ch] font-display text-2xl font-semibold leading-tight tracking-tight text-ink">
-                        {d.name}
+                      <h3 className="dc-hero-title mx-auto mt-8 max-w-[18ch] font-display text-2xl font-semibold capitalize leading-tight tracking-tight text-ink">
+                        {d.shortName}
                       </h3>
                     </div>
                     <span className="dc-hero-index absolute right-6 top-6 font-mono text-sm tracking-widest text-ink-tertiary">

@@ -1,15 +1,48 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { GithubLogo } from "@phosphor-icons/react/dist/ssr";
+import type { Icon } from "@phosphor-icons/react";
+import {
+  GithubLogo,
+  Fingerprint,
+  GameController,
+  Circuitry,
+  Dna,
+  Cpu,
+  Cube,
+  Code,
+} from "@phosphor-icons/react/dist/ssr";
 import gsap from "gsap";
-import { projects } from "@/lib/site";
+
+export type SiteProject = {
+  id: string;
+  name: string;
+  domain: string | null;
+  blurb: string | null;
+  status: string | null;
+  tags: string[] | null;
+  github: string | null;
+};
 
 // Constant slow marquee speed in px/second.
 const SPEED = 44;
 
-function ProjectCard({ p, i }: { p: (typeof projects)[number]; i: number }) {
-  const Icon = p.icon;
+// Pick a card icon from the project's department label. The projects table
+// has no icon column, so the accent glyph is derived from the domain.
+function domainIcon(domain: string | null): Icon {
+  const d = (domain ?? "").toLowerCase();
+  if (d.includes("forensic") || d.includes("blockchain")) return Fingerprint;
+  if (d.includes("game")) return GameController;
+  if (d.includes("electron") || d.includes("iot") || d.includes("embedded"))
+    return Circuitry;
+  if (d.includes("infor") || d.includes("bio")) return Dna;
+  if (d.includes("linux") || d.includes("kernel")) return Cpu;
+  if (d.includes("immersive") || d.includes("vr") || d.includes("3d")) return Cube;
+  return Code;
+}
+
+function ProjectCard({ p, i }: { p: SiteProject; i: number }) {
+  const Icon = domainIcon(p.domain);
 
   return (
     <article className="proj-card group relative flex h-[340px] w-[280px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-hairline bg-surface sm:w-[320px] lg:w-[360px]">
@@ -30,7 +63,7 @@ function ProjectCard({ p, i }: { p: (typeof projects)[number]; i: number }) {
       <div className="proj-reveal absolute inset-x-0 top-0 z-20 flex h-full w-full flex-col p-6">
         <div className="flex items-center justify-between">
           <span className="font-mono text-[0.7rem] tracking-widest text-white/60">
-            PROJ-0{i + 1}
+            PROJ-{String(i + 1).padStart(2, "0")}
           </span>
           {p.github ? (
             <a
@@ -61,13 +94,13 @@ function ProjectCard({ p, i }: { p: (typeof projects)[number]; i: number }) {
             {p.name}
           </h3>
           <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-wider text-white/60">
-            {p.domain}
+            {p.domain ?? "—"}
           </p>
           <p className="mt-3 text-[0.82rem] leading-relaxed text-white/85">{p.blurb}</p>
         </div>
 
         <ul className="mt-auto flex flex-wrap gap-2 pt-5">
-          {p.tags.map((tag) => (
+          {(p.tags ?? []).map((tag) => (
             <li
               key={tag}
               className="rounded-full border border-white/20 bg-white/5 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-wider text-white/80"
@@ -81,7 +114,7 @@ function ProjectCard({ p, i }: { p: (typeof projects)[number]; i: number }) {
   );
 }
 
-function ProjectRow({ items }: { items: (typeof projects)[number][] }) {
+function ProjectRow({ items }: { items: SiteProject[] }) {
   return (
     <div className="flex shrink-0 items-stretch gap-5 pr-5">
       {items.map((p, i) => (
@@ -91,10 +124,16 @@ function ProjectRow({ items }: { items: (typeof projects)[number][] }) {
   );
 }
 
-export function Projects() {
+export function Projects({ projects }: { projects: SiteProject[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
   const [reduced, setReduced] = useState(false);
+  // How many repeats of the pattern fill (then overflow) the viewport. Starts
+  // at a sane default and is re-measured on mount/resize.
+  const [copies, setCopies] = useState(4);
 
+  // Measure the single-pattern width and compute enough repeats to span the
+  // full viewport so the marquee never has gaps, no matter how few cards.
   useEffect(() => {
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -102,31 +141,44 @@ export function Projects() {
     setReduced(reduce);
     if (reduce) return;
 
-    const track = trackRef.current;
-    if (!track) return;
-
-    let tween: gsap.core.Tween | null = null;
-    let wrapper: HTMLElement | null = null;
-
-    const setup = () => {
-      tween?.kill();
-      const half = track.scrollWidth / 2;
-      if (!half) return;
-      tween = gsap.to(track, {
-        x: -half,
-        duration: half / SPEED,
-        ease: "none",
-        repeat: -1,
-        force3D: true,
-      });
+    const measure = () => {
+      const track = trackRef.current;
+      const row = rowRef.current;
+      const viewport = track?.parentElement;
+      if (!track || !row || !viewport) return;
+      const pattern = row.offsetWidth;
+      if (!pattern) return;
+      const vw = viewport.offsetWidth;
+      setCopies(Math.max(2, Math.ceil(vw / pattern) + 2));
     };
 
-    setup();
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
-    const pause = () => tween?.pause();
-    const resume = () => tween?.play();
+  // Seamless loop: the pattern is repeated `copies` times, so translating by
+  // exactly one pattern width restarts on identical content.
+  useEffect(() => {
+    if (reduced || copies === 0) return;
+    const track = trackRef.current;
+    const row = rowRef.current;
+    if (!track || !row) return;
 
-    wrapper = track.parentElement;
+    const pattern = row.offsetWidth;
+    if (!pattern) return;
+
+    let tween: gsap.core.Tween = gsap.to(track, {
+      x: -pattern,
+      duration: pattern / SPEED,
+      ease: "none",
+      repeat: -1,
+      force3D: true,
+    });
+
+    const pause = () => tween.pause();
+    const resume = () => tween.play();
+    const wrapper = track.parentElement;
     if (wrapper) {
       wrapper.addEventListener("pointerenter", pause);
       wrapper.addEventListener("pointerleave", resume);
@@ -134,20 +186,16 @@ export function Projects() {
       wrapper.addEventListener("touchend", resume, { passive: true });
     }
 
-    const onResize = () => setup();
-    window.addEventListener("resize", onResize);
-
     return () => {
-      window.removeEventListener("resize", onResize);
+      tween.kill();
       if (wrapper) {
         wrapper.removeEventListener("pointerenter", pause);
         wrapper.removeEventListener("pointerleave", resume);
         wrapper.removeEventListener("touchstart", pause);
         wrapper.removeEventListener("touchend", resume);
       }
-      tween?.kill();
     };
-  }, []);
+  }, [reduced, copies]);
 
   return (
     <section id="projects" className="relative overflow-hidden bg-surface/40 py-28">
@@ -164,24 +212,33 @@ export function Projects() {
         </p>
       </div>
 
-      <div
-        className={`relative ${
-          reduced
-            ? "overflow-x-auto pb-4"
-            : "overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]"
-        }`}
-      >
-        <div ref={trackRef} className="flex w-max">
-          {reduced ? (
-            <ProjectRow items={projects} />
-          ) : (
-            <>
-              <ProjectRow items={projects} />
-              <ProjectRow items={projects} />
-            </>
-          )}
+      {projects.length === 0 ? (
+        <div className="container-shell">
+          <p className="max-w-md font-mono text-xs uppercase tracking-[0.2em] text-ink-tertiary">
+            The workshop is quiet… no projects in the database yet.
+          </p>
         </div>
-      </div>
+      ) : (
+        <div
+          className={`relative ${
+            reduced
+              ? "overflow-x-auto pb-4"
+              : "overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]"
+          }`}
+        >
+          <div ref={trackRef} className="flex w-max">
+            {Array.from({ length: reduced ? 1 : copies }, (_, i) => (
+              <div
+                key={i}
+                ref={i === 0 ? rowRef : undefined}
+                className="flex shrink-0"
+              >
+                <ProjectRow items={projects} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

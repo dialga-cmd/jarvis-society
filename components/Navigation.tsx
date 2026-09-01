@@ -7,10 +7,11 @@ import gsap from "gsap";
 
 const NAV_LINKS = [
   { label: "Domains", href: "/#domains" },
-  { label: "Projects", href: "/#projects" },
   { label: "About", href: "/#about" },
-  { label: "Playground", href: "/playground" },
+  { label: "Projects", href: "/#projects" },
   { label: "Contact", href: "/#contact" },
+  { label: "Teams", href: "/teams" },
+  { label: "Playground", href: "/playground" },
 ];
 
 function Monogram() {

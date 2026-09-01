@@ -99,6 +99,13 @@ export function Footer() {
                 all systems nominal
               </li>
             </ul>
+            <Link
+              href="/login"
+              className="mt-5 inline-flex items-center gap-2 rounded-lg border border-white/10 bg-surface px-4 py-2 font-mono text-xs uppercase tracking-[0.14em] text-ink-secondary transition-all duration-300 hover:border-accent-soft hover:text-ink"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-accent-soft" />
+              Admin panel
+            </Link>
           </div>
         </div>
 

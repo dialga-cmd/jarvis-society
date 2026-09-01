@@ -1,13 +1,23 @@
 import { Navigation } from "@/components/Navigation";
 import { Hero } from "@/components/Hero";
 import { Domains } from "@/components/Domains";
-import { Projects } from "@/components/Projects";
+import { Projects, type SiteProject } from "@/components/Projects";
 import { About } from "@/components/About";
 import { Contact } from "@/components/Contact";
 import { Footer } from "@/components/Footer";
 import { ScrollProgress } from "@/components/ScrollProgress";
+import { getProjects } from "@/lib/project";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  let projects: SiteProject[] = [];
+  try {
+    projects = await getProjects();
+  } catch {
+    projects = [];
+  }
+
   return (
     <>
       <ScrollProgress />
@@ -15,8 +25,8 @@ export default function Home() {
       <main>
         <Hero />
         <Domains />
-        <Projects />
         <About />
+        <Projects projects={projects} />
         <Contact />
       </main>
       <Footer />

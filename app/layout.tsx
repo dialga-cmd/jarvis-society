@@ -1,22 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, Sora, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { SmoothScrollProvider } from "@/components/SmoothScrollProvider";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
+const spaceGrotesk = localFont({
+  src: "./fonts/SpaceGrotesk-Variable.woff2",
+  weight: "300 700",
   variable: "--font-space-grotesk",
   display: "swap",
 });
 
-const sora = Sora({
-  subsets: ["latin"],
+const sora = localFont({
+  src: "./fonts/Sora-Variable.woff2",
+  weight: "100 800",
   variable: "--font-sora",
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
+const jetbrainsMono = localFont({
+  src: "./fonts/JetBrainsMono-Variable.woff2",
+  weight: "100 800",
   variable: "--font-jetbrains-mono",
   display: "swap",
 });
