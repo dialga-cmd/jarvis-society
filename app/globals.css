@@ -402,11 +402,7 @@
   }
 }
 
-/* ---- Project cards: expanding corner flaps (Uiverse by eslam-hany) ----
-   Two small accent corner tiles grow to fill the card on hover, turning it
-   into the revealed state (domain, name, blurb, tags, GitHub). Only the
-   project name is centered in the rest state. Mobile/tablet (<lg): no hover —
-   always show the full details statically. */
+/* ---- Domain cards: translated Uiverse hover animation ----
 .proj-card { --pf-accent: #4b4f57; }
 
 .proj-corner {
@@ -428,7 +424,7 @@
 .proj-corner-a { top: 0; right: 0; border-radius: 0 15px 0 100%; }
 .proj-corner-b { bottom: 0; left: 0; border-radius: 0 100% 0 15px; }
 
-/* Centered project name (rest state) */
+/* Centered domain name (rest state) */
 .proj-rest {
   opacity: 1;
   transition: opacity 0.3s ease;

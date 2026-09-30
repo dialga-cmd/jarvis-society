@@ -21,7 +21,7 @@ export function About() {
             <p>
               JARVIS Society is a student-run collective that treats the
               university as a launchpad. We learn in the open, ship in
-              public, and hold every project to a single standard: does it
+              public, and hold every effort to a single standard: does it
               work, and can we prove it?
             </p>
             <p>

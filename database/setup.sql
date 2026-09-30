@@ -4,7 +4,7 @@
 -- Run this ENTIRE block once in the Supabase SQL editor (Dashboard → SQL
 -- Editor → New query → paste → Run). It creates every table, enables RLS on
 -- all of them, and creates the image bucket. It is safe to run on a fresh
--- project. It does NOT insert any data — content is added later through the
+-- Supabase setup. It does NOT insert any data — content is added later through the
 -- admin panel.
 -- ============================================================================
 
@@ -46,22 +46,22 @@ create table if not exists public."cores" (
 comment on table public."cores" is 'Core team members. Public reads happen via the app; anon key gets nothing (RLS enforced).';
 
 -- ----------------------------------------------------------------------------
--- 3. projects — shown in the home page marquee and in /admin/projects
+-- 3. events — scheduled events and sessions
 -- ----------------------------------------------------------------------------
-create table if not exists public."projects" (
-  id         text primary key,
-  name       text not null,
-  domain     text,
-  blurb      text,
-  status     text,
-  tags       text[] not null default '{}',
-  github     text,
-  sort_order integer not null default 0,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+create table if not exists public."events" (
+  id                uuid primary key default gen_random_uuid(),
+  name              text not null,
+  description       text,
+  registration_link text,
+  youtube_link      text,
+  start_time        text,
+  end_time          text,
+  image             text,
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now()
 );
 
-comment on table public."projects" is 'Projects feed. Anyone may read; only the server may write.';
+comment on table public."events" is 'Events and sessions metadata.';
 
 -- ----------------------------------------------------------------------------
 -- 4. updated_at trigger (keeps updated_at current on every UPDATE)
@@ -78,9 +78,9 @@ create trigger set_cores_updated_at
   before update on public."cores"
   for each row execute function public.set_updated_at();
 
-drop trigger if exists set_projects_updated_at on public."projects";
-create trigger set_projects_updated_at
-  before update on public."projects"
+drop trigger if exists set_events_updated_at on public."events";
+create trigger set_events_updated_at
+  before update on public."events"
   for each row execute function public.set_updated_at();
 
 -- ----------------------------------------------------------------------------
@@ -90,14 +90,14 @@ create trigger set_projects_updated_at
 -- from tampering through it. The app's server uses the service-role key,
 -- which bypasses all of this, so the app keeps working normally.
 
--- projects: everyone may read (public data), nobody may write via anon.
-alter table public."projects" enable row level security;
-create policy "public read" on public."projects"
-  for select to anon, authenticated using (true);
-
 -- cores: no anon policies → the anon key cannot read or write. The public
 -- /teams page is rendered server-side, so this is safe.
 alter table public."cores" enable row level security;
+
+-- events: everyone may read (public data), nobody may write via anon.
+alter table public."events" enable row level security;
+create policy "public read events" on public."events"
+  for select to anon, authenticated using (true);
 
 -- admins: no anon policies → only the server (service-role key) can read it.
 alter table public."admins" enable row level security;
@@ -119,7 +119,7 @@ select public.create_public_data_bucket();
 drop function public.create_public_data_bucket();
 
 -- ============================================================================
--- DONE. Tables: admins, cores, projects. Bucket: public-data.
+-- DONE. Tables: admins, cores, events. Bucket: public-data.
 -- Next steps (see backend.md):
 --   1. enable the Google OAuth provider with your credentials
 --   2. add your email to admins so you can sign in:

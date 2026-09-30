@@ -17,6 +17,9 @@ export function supabaseAdmin(): SupabaseClient {
     }
     admin = createClient(url, key, {
       auth: { autoRefreshToken: false, persistSession: false },
+      global: {
+        fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+      },
     });
   }
   return admin;

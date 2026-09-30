@@ -1,67 +1,62 @@
 import { supabaseAdmin } from "@/lib/supabase";
 
+export interface CoreLink {
+  label: string;
+  url: string;
+}
+
 export interface CoreMember {
-  id: string | number;
+  id: string;
   name: string;
-  position?: string | null;
-  team?: string[];
-  tenure?: string | null;
-  region?: string | null;
-  email?: string | null;
-  image?: string | null;
-  linkedin?: string | null;
+  tenure: string | null;
+  department: string | null;
+  image: string | null;
+  linkedin: string | null;
+  links: CoreLink[];
 }
 
-// A member can hold several roles; `cores.team` is a text[] array (or a single
-// comma-able string for legacy rows). Normalizes any shape into a clean,
-// deduped list.
-export function normalizeRoles(v: unknown): string[] {
-  if (Array.isArray(v)) {
-    return [
-      ...new Set(
-        v
-          .filter((x): x is string => typeof x === "string")
-          .map((x) => x.trim())
-          .filter(Boolean)
-      ),
-    ];
+export const DEPARTMENTS = [
+  "Heads",
+  "IoT & Electronics",
+  "Game Development",
+  "Immersive Technology",
+  "Linux Team",
+] as const;
+
+export function parseLinks(value: unknown): CoreLink[] {
+  if (!Array.isArray(value)) return [];
+  const out: CoreLink[] = [];
+  const seen = new Set<string>();
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    const label =
+      typeof rec.label === "string" ? rec.label.trim() : "";
+    const url = typeof rec.url === "string" ? rec.url.trim() : "";
+    if (!url) continue;
+    const key = `${label.toLowerCase()}|${url}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ label: label || "Link", url });
   }
-  if (typeof v === "string") {
-    return [
-      ...new Set(
-        v
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean)
-      ),
-    ];
-  }
-  return [];
+  return out;
 }
 
-// Display form of a role list:
-//   ["A"]            -> "A"
-//   ["A", "B"]       -> "A & B"
-//   ["A", "B", "C"]  -> "A, B, C"
-export function formatRoles(v: string[] | string | null | undefined): string {
-  const list = normalizeRoles(v);
-  if (list.length === 0) return "";
-  if (list.length === 1) return list[0];
-  if (list.length === 2) return `${list[0]} & ${list[1]}`;
-  return list.join(", ");
-}
-
-// Fetches the core team via the service-role key (bypasses RLS). Server-side
-// only — never call this from a client component.
 export async function getCoreMembers(): Promise<CoreMember[]> {
   const { data, error } = await supabaseAdmin()
     .from("cores")
-    .select("id, name, position, team, tenure, region, email, image, linkedin")
+    .select("id, name, tenure, department, image, linkedin, links")
+    .order("department", { ascending: true })
     .order("name", { ascending: true });
 
   if (error) throw error;
   return ((data ?? []) as Array<Record<string, unknown>>).map((r) => ({
-    ...r,
-    team: normalizeRoles(r.team),
-  })) as CoreMember[];
+    id: String(r.id),
+    name: String(r.name ?? ""),
+    tenure: typeof r.tenure === "string" ? r.tenure : null,
+    department: typeof r.department === "string" ? r.department : null,
+    image: typeof r.image === "string" ? r.image : null,
+    linkedin: typeof r.linkedin === "string" ? r.linkedin : null,
+    links: parseLinks(r.links),
+  }));
 }

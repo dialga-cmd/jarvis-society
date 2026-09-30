@@ -27,7 +27,13 @@ export default function AdminPage() {
       // The server resolves the email from the session cookies and checks the
       // admins table itself — nothing client-supplied is trusted here.
       const res = await fetch("/api/admin/verify");
-      const body = await res.json();
+      const text = await res.text();
+      let body;
+      try {
+        body = JSON.parse(text);
+      } catch (err) {
+        throw new Error(`API returned invalid JSON (Status: ${res.status}). Body: ${text.slice(0, 100)}`);
+      }
       if (res.ok && body.ok && body.isAdmin && sessionEmail) {
         setEmail(sessionEmail);
         setState("authenticated");

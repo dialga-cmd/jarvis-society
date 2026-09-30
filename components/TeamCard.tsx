@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import type { CoreMember } from "@/lib/core";
-import { formatRoles } from "@/lib/core";
 
 const MAX_TILT = 17.5;
 
@@ -79,10 +78,8 @@ export function TeamCard({ member }: { member: CoreMember }) {
       </div>
       <div className="member-info">
         <h3>{member.name}</h3>
-        {member.position && <p className="member-role">{member.position}</p>}
-        {formatRoles(member.team) && (
-          <p className="member-tags">{formatRoles(member.team)}</p>
-        )}
+        {member.department && <p className="member-role">{member.department}</p>}
+        {member.tenure && <p className="member-tags">{member.tenure}</p>}
       </div>
     </article>
   );

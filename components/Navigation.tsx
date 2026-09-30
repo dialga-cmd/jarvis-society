@@ -8,7 +8,7 @@ import gsap from "gsap";
 const NAV_LINKS = [
   { label: "Domains", href: "/#domains" },
   { label: "About", href: "/#about" },
-  { label: "Projects", href: "/#projects" },
+  { label: "E&S", href: "/events" },
   { label: "Contact", href: "/#contact" },
   { label: "Teams", href: "/teams" },
   { label: "Playground", href: "/playground" },

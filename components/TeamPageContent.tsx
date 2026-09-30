@@ -4,45 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { TeamCard } from "@/components/TeamCard";
-import type { CoreMember } from "@/lib/core";
-import { normalizeRoles } from "@/lib/core";
+import { DEPARTMENTS, type CoreMember } from "@/lib/core";
 
 gsap.registerPlugin(ScrollTrigger);
-
-// Category tabs: leadership first, then the domains. These match the
-// `position` values the admin sets (legacy rows fall back to keyword search
-// on the `team`/role column).
-const CATEGORIES = [
-  "Heads",
-  "IoT & Electronics",
-  "Game Development",
-  "Immersive Technology",
-  "Linux Team",
-] as const;
-
-// Old seed data used free-text positions/teams. Keyword map lets those still
-// land in the right tab while the DB is migrated to the structured values.
-const LEGACY_TERMS: Record<string, string[]> = {
-  Heads: ["leadership", "president", "secretary"],
-  "IoT & Electronics": ["electronics", "iot", "sensor", "embedded"],
-  "Game Development": ["game", "unity", "unreal"],
-  "Immersive Technology": ["immersive", "vr", "ar", "software"],
-  "Linux Team": ["linux", "shell", "server", "infrastructure"],
-};
-
-function leaderRank(position?: string | null): number {
-  const s = (position || "").toLowerCase();
-  if (s.includes("vice president")) return 1;
-  if (s.includes("president")) return 0;
-  if (s.includes("lead") || s.includes("secretary")) return 2;
-  if (s.includes("core member")) return 3;
-  return 4;
-}
-
-function sortByLeadership(a: CoreMember, b: CoreMember): number {
-  const byRank = leaderRank(a.position) - leaderRank(b.position);
-  return byRank !== 0 ? byRank : a.name.localeCompare(b.name);
-}
 
 export function TeamPageContent({
   members,
@@ -53,26 +17,34 @@ export function TeamPageContent({
 }) {
   const sectionRef = useRef<HTMLElement>(null);
 
-  const [selectedTeam, setSelectedTeam] = useState<string>(CATEGORIES[0]);
+  const categories = useMemo(() => {
+    const fromData = [
+      ...new Set(
+        members
+          .map((m) => m.department)
+          .filter((d): d is string => Boolean(d && d.trim()))
+      ),
+    ];
+    const known = DEPARTMENTS.filter((d) => fromData.includes(d));
+    const extra = fromData.filter(
+      (d) => !DEPARTMENTS.includes(d as (typeof DEPARTMENTS)[number])
+    );
+    const tabs = [...known, ...extra.sort()];
+    return tabs.length > 0 ? tabs : [...DEPARTMENTS];
+  }, [members]);
+
+  const [selectedTeam, setSelectedTeam] = useState<string>(categories[0]);
+
+  useEffect(() => {
+    if (!categories.includes(selectedTeam)) {
+      setSelectedTeam(categories[0]);
+    }
+  }, [categories, selectedTeam]);
 
   const visibleMembers = useMemo(() => {
-    // Primary: exact match against the new `position` value.
-    const exact = members.filter((m) => (m.position || "") === selectedTeam);
-    if (exact.length > 0) return exact.sort(sortByLeadership);
-    // Fallback for legacy rows: keyword search against position/role.
-    const terms = LEGACY_TERMS[selectedTeam] ?? [];
     return members
-      .filter((m) =>
-        terms.some(
-          (t) =>
-            (m.position || "").toLowerCase().includes(t) ||
-            normalizeRoles(m.team)
-              .join(" ")
-              .toLowerCase()
-              .includes(t)
-        )
-      )
-      .sort(sortByLeadership);
+      .filter((m) => (m.department || "") === selectedTeam)
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [members, selectedTeam]);
 
   useEffect(() => {
@@ -139,7 +111,7 @@ export function TeamPageContent({
 
             {members.length > 0 && (
               <div className="category-bar" role="tablist" aria-label="Teams">
-                {CATEGORIES.map((team) => (
+                {categories.map((team) => (
                   <button
                     key={team}
                     role="tab"

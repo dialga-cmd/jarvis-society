@@ -4,16 +4,16 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   SquaresFour,
-  Stack,
   UsersThree,
+  CalendarBlank,
   SignOut,
 } from "@phosphor-icons/react/dist/ssr";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: SquaresFour },
-  { href: "/admin/projects", label: "Projects", icon: Stack },
-  { href: "/admin/team", label: "Team", icon: UsersThree },
+  { href: "/admin/cores", label: "Cores", icon: UsersThree },
+  { href: "/admin/events", label: "E&S", icon: CalendarBlank },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

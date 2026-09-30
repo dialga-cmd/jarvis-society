@@ -2,7 +2,7 @@
 
 Everything behind the scenes lives in **Supabase** (Postgres + Auth + Storage) and
 is reached through **Next.js route handlers**. This walks through the full setup:
-project + keys, Google OAuth for the admin login, the database tables, file
+Supabase setup + keys, Google OAuth for the admin login, the database tables, file
 uploads, and the API surface.
 
 ---
@@ -12,7 +12,7 @@ uploads, and the API surface.
 ```
 Browser (Next.js)
  ├─ public site  ──────────────>  server components  ──getCoreMembers()/──>  Supabase (service_role)
- │  /teams, / projects                              getProjects()
+ │  /teams, / events                              getEvents()
  │
  ├─ /login (Google popup)  ─── anon key  ──────────>  Supabase Auth  ─>  Google OAuth
  │                                                    session back to /auth/callback
@@ -77,12 +77,20 @@ The `/login` page lets an authorized email sign in with Google via a **popup**.
    screen**. Configure your app name, logo, and support email. (optional)
 2. **APIs & Services → Credentials → Create Credentials → OAuth client ID**.
    - Application type: **Web application**.
-   - **Authorized redirect URIs** must include:
-     - `https://<your-project-ref>.supabase.co/auth/v1/callback` (required — Supabase
-       completes the Google handshake at this URL)
-     - `http://localhost:3000/auth/callback` (for local dev)
+   - **Authorized JavaScript origins** (your Next.js origins, not the callback):
+     - `http://localhost:3000`
+     - your production origin when you deploy (e.g. `https://example.com`)
+   - **Authorized redirect URIs** must be **exactly** this (one URI, no trailing slash):
+     - `https://<your-project-ref>.supabase.co/auth/v1/callback`
 3. Copy the **Client ID** and **Client Secret** (the secret is only shown once).
+   Paste those same values into Supabase (step 4b). A mismatch here is a common
+   cause of `redirect_uri_mismatch`.
 
+> Google talks **only** to Supabase. Do **not** put `http://localhost:3000/auth/callback`
+> in Google’s Authorized redirect URIs. That URL belongs in **Supabase → Authentication
+> → URL Configuration → Redirect URLs** (step 4b). Putting the app URL in Google
+> produces `Error 400: redirect_uri_mismatch`.
+>
 > If Google shows a warning about a loopback/`localhost` redirect URI, it usually
 > refers to an auto-created CLI client — delete that OAuth client or remove the
 > unused `localhost` URIs from it. It does not come from this app.
@@ -115,29 +123,28 @@ is not enough.
 
 ## 5. Database tables
 
-### 5a. `cores` — core team (public `/teams` page + admin Team page)
+### 5a. `cores` — core team (public `/teams` page + admin Cores page)
 
-Already in production. Observed schema (columns `name`, `team`, `position`,
-`tenure`, `region`, `email` are **NOT NULL**):
+Run **`schema-cores.sql`** in the Supabase SQL Editor. That script creates
+`admins`, `cores`, and the `public-data` storage bucket.
 
-```
-id          uuid PK      default gen_random_uuid()
-name        text         NOT NULL
-team        text         NOT NULL   -- department keyword, e.g. 'electronics'
-position    text         NOT NULL   -- 'President' | 'Vice President' | 'Team lead' | 'Core member'
-tenure      text         NOT NULL   -- e.g. '2024–26'
-region      text         NOT NULL   -- e.g. 'Chennai'
-email       text         NOT NULL
-image       text         nullable    -- public URL from uploads
-linkedin    text         nullable
-created_at  / updated_at timestamptz default now()
-```
+`cores` columns:
 
-Seed a row:
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid PK | `gen_random_uuid()` |
+| `name` | text NOT NULL | |
+| `tenure` | text NOT NULL | e.g. `2024–26` |
+| `department` | text NOT NULL | e.g. `Linux Team` |
+| `image` | text | public URL from `/api/admin/upload` |
+| `linkedin` | text | profile URL |
+| `links` | jsonb | array of `{ "label", "url" }` (GitHub, site, …) |
+| `created_at` / `updated_at` | timestamptz | `updated_at` is maintained by a trigger |
+
+Replace the placeholder email in the script with your Google login, then:
 
 ```sql
-insert into public."cores" (name, team, position, tenure, region, email)
-values ('Ada Lovelace', 'electronics', 'Team lead', '2024–26', 'Chennai', 'ada@study.iitm.ac.in');
+insert into public.admins (email) values ('you@your-domain.com');
 ```
 
 ### 5b. `admins` — who can access `/admin`
@@ -155,10 +162,10 @@ create table if not exists public."admins" (
 insert into public."admins" (email) values ('you@your-domain.com');
 ```
 
-### 5c. `projects` — home page marquee + admin Projects page
+### 5c. `events` — home page marquee + admin Projects page
 
-Full script (table + seed of the 10 original demo projects) is in
-**`seed-projects.sql`** at the repo root. Run it in the Supabase SQL editor.
+Full script (table + seed of the 10 original demo events) is in
+**`seed-events.sql`** at the repo root. Run it in the Supabase SQL editor.
 
 ```
 id          text PK        -- stable slug, e.g. 'sentinelle'
@@ -173,13 +180,13 @@ created_at / updated_at timestamptz default now()
 ```
 
 The home page is `force-dynamic` and reads this table on every request, so edits
-in `/admin/projects` are reflected on the site immediately.
+in `/admin/events` are reflected on the site immediately.
 
 ### 5d. Row Level Security
 
 - `cores` has **RLS enabled**: the anon (browser) key sees nothing — the public
   `/teams` page and all admin routes use the `service_role` key server-side.
-- `projects` and `admins` are read/written exclusively through `service_role`
+- `events` and `admins` are read/written exclusively through `service_role`
   routes, so they can stay RLS-off (default). Keep it that way; never expose
   these to the anon key without real policies.
 
@@ -224,19 +231,18 @@ All routes run server-side with `supabaseAdmin()` (service role).
 
 | Route | Method | Purpose |
 |---|---|---|
-| `/api/admin/team` | GET, POST | list members (`cores`), add member |
-| `/api/admin/team/[id]` | PATCH, DELETE | update / delete a member |
-| `/api/admin/projects` | GET, POST | list projects, add project |
-| `/api/admin/projects/[id]` | PATCH, DELETE | update / delete a project |
+| `/api/admin/cores` | GET, POST | list cores, add member |
+| `/api/admin/cores/[id]` | PATCH, DELETE | update / delete a member |
+| `/api/admin/events` | GET, POST | list events, add event |
+| `/api/admin/events/[id]` | PATCH, DELETE | update / delete an event |
 | `/api/admin/upload` | POST | upload a WebP to `public-data`, returns URL |
 | `/api/admin/verify` | GET `?email=` | is this email in `admins`? |
 
 Payload rules worth knowing:
 
-- **Team create** requires `name`, `position`, `team`, `tenure`, `region`,
-  `email` (all NOT NULL in the table). Blank optional fields (`image`,
-  `linkedin`) are stored as `NULL`.
-- **Project create**: `name` required; `id` is auto-slugged from the name when
+- **Cores create** requires `name`, `tenure`, `department`. Optional: `image`,
+  `linkedin`, `links` (JSON array of `{ label, url }`).
+- **Event create**: `name` required; `id` is auto-slugged from the name when
   blank; `tags` accepts a comma-separated string and is stored as `text[]`.
 - Every mutation re-fetches the list, so the admin tables refresh immediately.
 
@@ -267,10 +273,10 @@ npm start
 ## 9. Checklist for a fresh machine
 
 - [ ] Supabase project exists; API URL + anon + service_role keys in `.env`
-- [ ] Google OAuth client created; redirect `https://<ref>.supabase.co/auth/v1/callback` added
+- [ ] Google OAuth **Web** client created; **only** redirect `https://<ref>.supabase.co/auth/v1/callback` added (not localhost)
 - [ ] Supabase Auth → Google provider enabled with those client ID/secret
 - [ ] `auth/callback` added to Supabase **Redirect URLs** (localhost + prod)
-- [ ] `cores` table seeded with team members
-- [ ] `admins` table created and your Google email inserted
-- [ ] `projects` table + seed created (`seed-projects.sql`)
+- [ ] `schema-cores.sql` run (`admins` + `cores` + `public-data` bucket)
+- [ ] your Google email inserted into `admins`
+- [ ] `events` table + seed created (`seed-events.sql`)
 - [ ] `public-data` bucket exists and is public

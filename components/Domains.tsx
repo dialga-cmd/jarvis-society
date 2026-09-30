@@ -92,7 +92,7 @@ export function Domains() {
               Where the society <span className="text-accent-lit">specializes</span>
             </h2>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-secondary">
-              Four domains, one standard. Each workshop, event, and project
+              Four domains, one standard. Each workshop, event, and session
               lives inside one of these disciplines.
             </p>
           </div>

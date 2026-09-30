@@ -1,21 +1,21 @@
 import { Navigation } from "@/components/Navigation";
 import { Hero } from "@/components/Hero";
 import { Domains } from "@/components/Domains";
-import { Projects, type SiteProject } from "@/components/Projects";
+import { EventsPreview } from "@/components/EventsPreview";
 import { About } from "@/components/About";
 import { Contact } from "@/components/Contact";
 import { Footer } from "@/components/Footer";
 import { ScrollProgress } from "@/components/ScrollProgress";
-import { getProjects } from "@/lib/project";
+import { getEvents, type EventRecord } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  let projects: SiteProject[] = [];
+  let events: EventRecord[] = [];
   try {
-    projects = await getProjects();
+    events = await getEvents();
   } catch {
-    projects = [];
+    events = [];
   }
 
   return (
@@ -26,7 +26,7 @@ export default async function Home() {
         <Hero />
         <Domains />
         <About />
-        <Projects projects={projects} />
+        <EventsPreview events={events} />
         <Contact />
       </main>
       <Footer />

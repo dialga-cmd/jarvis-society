@@ -8,17 +8,7 @@ function unauthorized() {
   return NextResponse.json({ ok: false, message: "Unauthorized." }, { status: 401 });
 }
 
-// Only WebP. Enforced on MIME type, extension, and the actual bytes
-// (RIFF....WEBP container header) so a renamed file can't slip through.
-const MAX_BYTES = 5 * 1024 * 1024;
-
-function isWebp(buf: Buffer): boolean {
-  return (
-    buf.length >= 12 &&
-    buf.subarray(0, 4).toString("latin1") === "RIFF" &&
-    buf.subarray(8, 12).toString("latin1") === "WEBP"
-  );
-}
+import sharp from "sharp";
 
 function slugify(s: string): string {
   return s
@@ -38,26 +28,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, message: "No file provided." }, { status: 400 });
     }
 
-    const isWebpMime = file.type === "image/webp";
-    const isWebpName = file.name.toLowerCase().endsWith(".webp");
-    if (!isWebpMime || !isWebpName) {
+    let buf = Buffer.from(await file.arrayBuffer());
+    
+    // Convert to webp using sharp
+    try {
+      buf = await sharp(buf).webp({ quality: 80 }).toBuffer();
+    } catch (e) {
       return NextResponse.json(
-        { ok: false, message: "Only WebP (.webp) images are allowed." },
-        { status: 400 }
-      );
-    }
-
-    if (file.size > MAX_BYTES) {
-      return NextResponse.json(
-        { ok: false, message: "Image is too large. Keep it under 5 MB." },
-        { status: 400 }
-      );
-    }
-
-    const buf = Buffer.from(await file.arrayBuffer());
-    if (!isWebp(buf)) {
-      return NextResponse.json(
-        { ok: false, message: "File content is not a valid WebP image." },
+        { ok: false, message: "Could not process the image." },
         { status: 400 }
       );
     }
